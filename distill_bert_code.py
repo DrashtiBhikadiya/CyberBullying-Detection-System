@@ -1,7 +1,7 @@
 # ===========================================================================================================
     # DistilBERT training — Transformers 4.56.0 compatible.
 
-    # Already Trained Model for Cyberbullying Classification is provided. GO TO distibert_trained_model folder and 
+    # Run this file and 
     # install all files in one folder and you are good to go for prediction by running app.py file.
 
     # https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification 
@@ -126,4 +126,5 @@ print(classification_report(y_true, y_pred, target_names=list(id2label.values())
 save_dir = "/content/drive/MyDrive/distilbert_cyber_model"
 trainer.save_model(save_dir)
 tokenizer.save_pretrained(save_dir)
+
 print("✅ Model saved to:", save_dir)
