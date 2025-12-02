@@ -1,6 +1,7 @@
 # ==============================
 # RoBERTa training — Transformers 4.56.0 compatible
-# Run this code to install RoBerta Model for Cyberbullying Classification
+#  Run this file and 
+# install all files in one folder and you are good to go for prediction by running app.py file.
 # Dataset: https://www.kaggle.com/datasets/andrewmvd/cyberbullying-classification  "install from this link and replace DF_PATH"
 
 # ==============================
@@ -193,4 +194,5 @@ if "eval_accuracy" in eval_logs.columns:
     plt.show()
 
 print("✅ Charts generated successfully!")
+
 
