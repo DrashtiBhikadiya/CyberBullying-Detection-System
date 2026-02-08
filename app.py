@@ -163,9 +163,9 @@ def load_model():
         print(f"Files in directory: {files}")
         
         # Load files
-        model = joblib.load("tfidf_logreg_best.jobilib")
+        model = joblib.load("tfidf_logreg_best.joblib")
         vectorizer = joblib.load("vocab.txt")
-        label_encoder = joblib.load("label_encoder.jobilib")
+        label_encoder = joblib.load("label_encoder.joblib")
         
         st.success("✅ Models loaded successfully!")
         return model, vectorizer, label_encoder
@@ -204,3 +204,4 @@ if model is not None:
                     
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+
