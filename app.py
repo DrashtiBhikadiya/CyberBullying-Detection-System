@@ -144,64 +144,57 @@
 import streamlit as st
 import joblib
 import os
+import traceback
 
 st.set_page_config(page_title="Cyberbullying Detector", layout="wide")
 
 st.title("🛡️ Cyberbullying Detection System")
-st.markdown("End-to-end NLP system for detecting cyberbullying")
 
-# Load model with error handling
+# Load model with detailed debugging
 @st.cache_resource
 def load_model():
     try:
-        # Get current directory
-        current_dir = os.getcwd()
-        print(f"Current directory: {current_dir}")
+        st.write("📂 Current directory:", os.getcwd())
+        st.write("📋 Available files:", os.listdir("."))
         
-        # List files in directory
-        files = os.listdir(".")
-        print(f"Files in directory: {files}")
-        
-        # Load files
+        st.write("\n⏳ Loading model...")
         model = joblib.load("tfidf_logreg_best.joblib")
-        vectorizer = joblib.load("vocab.txt")
-        label_encoder = joblib.load("label_encoder.joblib")
+        st.success("✅ Model loaded!")
         
-        st.success("✅ Models loaded successfully!")
+        st.write("⏳ Loading vectorizer...")
+        vectorizer = joblib.load("vocab.txt")
+        st.success("✅ Vectorizer loaded!")
+        
+        st.write("⏳ Loading label encoder...")
+        label_encoder = joblib.load("label_encoder.joblib")
+        st.success("✅ Label encoder loaded!")
+        
         return model, vectorizer, label_encoder
-    except FileNotFoundError as e:
-        st.error(f"❌ File not found: {str(e)}")
-        st.write(f"Looking in: {os.getcwd()}")
-        st.write(f"Available files: {os.listdir('.')}")
-        return None, None, None
+        
     except Exception as e:
-        st.error(f"❌ Error loading model: {str(e)}")
+        st.error(f"❌ ERROR: {type(e).__name__}")
+        st.error(f"Message: {str(e)}")
+        st.write("Full traceback:")
+        st.code(traceback.format_exc())
         return None, None, None
 
+# Load
 model, vectorizer, label_encoder = load_model()
 
 if model is not None:
-    text = st.text_area("Enter text to analyze:", height=150)
+    st.success("🎉 All models loaded successfully!")
     
-    if st.button("🔍 Detect", use_container_width=True):
-        if not text.strip():
-            st.warning("⚠️ Please enter some text")
-        else:
+    text = st.text_area("Enter text:", height=150)
+    if st.button("Detect"):
+        if text.strip():
             try:
-                # Vectorize
-                text_vector = vectorizer.transform([text])
+                vector = vectorizer.transform([text])
+                pred = model.predict(vector)[0]
+                label = label_encoder.inverse_transform([pred])[0]
+                score = max(model.predict_proba(vector)[0])
                 
-                # Predict
-                prediction = model.predict(text_vector)[0]
-                score = max(model.predict_proba(text_vector)[0])
-                label = label_encoder.inverse_transform([prediction])[0]
-                
-                # Display result
-                if str(label).lower() == "not_cyberbullying":
-                    st.success(f"✅ Safe Message\nConfidence: {score:.2%}")
-                else:
-                    st.error(f"⚠️ {label}\nConfidence: {score:.2%}")
-                    
+                st.write(f"**Prediction:** {label}")
+                st.write(f"**Confidence:** {score:.2%}")
             except Exception as e:
-                st.error(f"❌ Error: {str(e)}")
-
+                st.error(f"Prediction error: {str(e)}")
+                st.code(traceback.format_exc())
