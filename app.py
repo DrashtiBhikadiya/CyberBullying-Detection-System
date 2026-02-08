@@ -143,41 +143,45 @@
 
 import streamlit as st
 import joblib
+import os
 
 st.set_page_config(page_title="Cyberbullying Detector", layout="wide")
 
-# Custom CSS
-st.markdown("""
-<style>
-    body {
-        background: linear-gradient(-45deg, #7d00ff, #5500ff, #4b7fff, #0099ff);
-        background-size: 500% 500%;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 st.title("🛡️ Cyberbullying Detection System")
-st.markdown("End-to-end NLP system for detecting cyberbullying, including religion-based abuse")
+st.markdown("End-to-end NLP system for detecting cyberbullying")
 
-# Load model (cached - loads only once)
+# Load model with error handling
 @st.cache_resource
 def load_model():
     try:
+        # Get current directory
+        current_dir = os.getcwd()
+        print(f"Current directory: {current_dir}")
+        
+        # List files in directory
+        files = os.listdir(".")
+        print(f"Files in directory: {files}")
+        
+        # Load files
         model = joblib.load("tfidf_logreg_best.jobilib")
         vectorizer = joblib.load("vocab.txt")
         label_encoder = joblib.load("label_encoder.jobilib")
+        
+        st.success("✅ Models loaded successfully!")
         return model, vectorizer, label_encoder
+    except FileNotFoundError as e:
+        st.error(f"❌ File not found: {str(e)}")
+        st.write(f"Looking in: {os.getcwd()}")
+        st.write(f"Available files: {os.listdir('.')}")
+        return None, None, None
     except Exception as e:
-        st.error(f"Error loading model: {str(e)}")
+        st.error(f"❌ Error loading model: {str(e)}")
         return None, None, None
 
 model, vectorizer, label_encoder = load_model()
 
-if model is None:
-    st.error("❌ Model files not found or corrupted")
-else:
-    # Input
-    text = st.text_area("Enter text to analyze:", height=150, placeholder="Type a message here...")
+if model is not None:
+    text = st.text_area("Enter text to analyze:", height=150)
     
     if st.button("🔍 Detect", use_container_width=True):
         if not text.strip():
@@ -189,46 +193,14 @@ else:
                 
                 # Predict
                 prediction = model.predict(text_vector)[0]
-                probabilities = model.predict_proba(text_vector)[0]
-                score = max(probabilities)
-                
-                # Decode label
+                score = max(model.predict_proba(text_vector)[0])
                 label = label_encoder.inverse_transform([prediction])[0]
                 
-                # Category definitions
-                cyberbullying_types = {
-                    "age": {"emoji": "👶", "text": "Age-Based Cyberbullying"},
-                    "gender": {"emoji": "⚥️", "text": "Gender-Based Cyberbullying"},
-                    "ethnicity": {"emoji": "🌍", "text": "Ethnicity-Based Cyberbullying"},
-                    "religion": {"emoji": "🙏", "text": "Religion-Based Cyberbullying"},
-                    "other_cyberbullying": {"emoji": "⚠️", "text": "Other Cyberbullying Detected"},
-                    "not_cyberbullying": {"emoji": "✅", "text": "Safe Message"}
-                }
-                
-                # Get category info
-                label_lower = str(label).lower().strip()
-                category = cyberbullying_types.get(label_lower, cyberbullying_types.get("not_cyberbullying"))
-                
                 # Display result
-                st.markdown("---")
-                
-                col1, col2 = st.columns([1, 3])
-                
-                with col1:
-                    st.markdown(f"<h1>{category['emoji']}</h1>", unsafe_allow_html=True)
-                
-                with col2:
-                    if label_lower == "not_cyberbullying":
-                        st.success(f"**{category['text']}**")
-                        st.write(f"✅ Confidence: {score:.2%}")
-                    else:
-                        st.error(f"**{category['text']}**")
-                        st.write(f"⚠️ Category: **{label}**")
-                        st.write(f"Confidence: {score:.2%}")
-                
-                # Progress bar
-                st.progress(score)
-                
+                if str(label).lower() == "not_cyberbullying":
+                    st.success(f"✅ Safe Message\nConfidence: {score:.2%}")
+                else:
+                    st.error(f"⚠️ {label}\nConfidence: {score:.2%}")
+                    
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
-
