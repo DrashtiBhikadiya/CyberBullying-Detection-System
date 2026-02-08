@@ -164,7 +164,7 @@ st.markdown("End-to-end NLP system for detecting cyberbullying, including religi
 def load_model():
     try:
         model = joblib.load("tfidf_logreg_best.jobilib")
-        vectorizer = joblib.load("vocab")
+        vectorizer = joblib.load("vocab.txt")
         label_encoder = joblib.load("label_encoder.jobilib")
         return model, vectorizer, label_encoder
     except Exception as e:
@@ -231,3 +231,4 @@ else:
                 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+
